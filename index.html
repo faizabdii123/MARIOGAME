@@ -2,10 +2,17 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <!-- viewport-fit=cover + safe-area handling for iOS/Android display cutouts -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title> A GAME BY FAIZ SIR </title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&display=swap');
+
+        :root {
+            --control-size: 12vmin; /* scales with screen */
+            --control-gap: 3vmin;
+            --safe-bottom: env(safe-area-inset-bottom, 10px);
+        }
 
         body {
             margin: 0;
@@ -44,18 +51,19 @@
         /* HUD */
         .hud-panel {
             position: absolute;
-            top: 20px;
+            top: calc(20px + env(safe-area-inset-top, 0px));
             left: 20px;
             color: #00ffcc;
             text-shadow: 0 0 10px #00ffcc;
             font-size: 20px;
             display: flex;
             gap: 20px;
+            pointer-events: none;
         }
 
         .level-indicator {
             position: absolute;
-            top: 20px;
+            top: calc(20px + env(safe-area-inset-top, 0px));
             right: 20px;
             color: #ff00cc;
             text-shadow: 0 0 10px #ff00cc;
@@ -69,15 +77,17 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(10, 10, 15, 0.9);
+            background: rgba(10, 10, 15, 0.95);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             pointer-events: auto;
-            transition: opacity 0.3s;
-            z-index: 10;
-            backdrop-filter: blur(5px);
+            transition: opacity 0.25s;
+            z-index: 30;
+            backdrop-filter: blur(4px);
+            padding: 20px;
+            box-sizing: border-box;
         }
 
         .hidden {
@@ -87,7 +97,7 @@
         }
 
         h1 {
-            font-size: 4vw;
+            font-size: 6vw;
             color: #00ffcc;
             text-transform: uppercase;
             letter-spacing: 5px;
@@ -98,7 +108,7 @@
 
         p {
             color: #ccc;
-            font-size: 1.2em;
+            font-size: 1.1em;
             margin-bottom: 30px;
             text-align: center;
             max-width: 600px;
@@ -115,7 +125,7 @@
         .btn {
             background: linear-gradient(45deg, #ff00cc, #333399);
             border: 2px solid #fff;
-            padding: 15px 40px;
+            padding: 12px 28px;
             color: white;
             font-family: 'Orbitron', sans-serif;
             font-size: 18px;
@@ -123,14 +133,11 @@
             text-transform: uppercase;
             transition: transform 0.1s, box-shadow 0.2s;
             box-shadow: 0 0 15px rgba(255, 0, 204, 0.5);
-            border-radius: 5px;
-            min-width: 150px;
+            border-radius: 8px;
+            min-width: 140px;
         }
 
-        .btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 25px rgba(255, 0, 204, 0.8);
-        }
+        .btn:hover { transform: scale(1.04); }
 
         .btn.secondary {
             background: transparent;
@@ -139,68 +146,83 @@
             box-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
         }
         
-        /* Mobile Controls - UPDATED */
+        /* Mobile Controls */
         #mobile-controls {
-            position: absolute;
-            bottom: 0; /* Anchored to very bottom */
+            position: fixed;
             left: 0;
-            width: 100%;
-            height: 100px; /* Reduced height to keep it low */
+            right: 0;
+            bottom: calc(var(--safe-bottom));
+            height: calc(var(--control-size) + 2 * var(--safe-bottom));
             pointer-events: none;
             display: none;
-            padding: 0 10px;
+            padding: calc(0.5vmin + env(safe-area-inset-bottom, 5px));
             box-sizing: border-box;
             z-index: 100;
         }
 
-        .d-pad { 
-            position: absolute; 
-            left: 10px; 
-            bottom: 10px; 
-            pointer-events: auto; 
+        /* D-pad area (left) */
+        .d-pad {
+            position: absolute;
+            left: 12px;
+            bottom: calc(12px + env(safe-area-inset-bottom, 6px));
+            pointer-events: auto;
+            display: flex;
+            gap: var(--control-gap);
+            align-items: center;
+            user-select: none;
         }
-        
-        .actions { 
-            position: absolute; 
-            right: 10px; 
-            bottom: 10px; 
-            pointer-events: auto; 
-            display: flex; 
-            gap: 15px;
+
+        /* Actions (right) */
+        .actions {
+            position: absolute;
+            right: 12px;
+            bottom: calc(12px + env(safe-area-inset-bottom, 6px));
+            pointer-events: auto;
+            display: flex;
+            gap: calc(var(--control-gap) / 2);
+            align-items: center;
         }
 
         .touch-btn {
-            width: 65px;
-            height: 65px;
-            background: rgba(255, 255, 255, 0.1); /* Very transparent */
-            border: 1px solid rgba(0, 255, 204, 0.3); /* Subtle border */
-            border-radius: 12px;
+            width: var(--control-size);
+            height: var(--control-size);
+            min-width: 48px;
+            min-height: 48px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(0, 255, 204, 0.18);
+            border-radius: 14px;
             display: flex;
             justify-content: center;
             align-items: center;
-            color: rgba(0, 255, 204, 0.7);
-            font-size: 24px;
-            backdrop-filter: blur(2px);
+            color: rgba(0, 255, 204, 0.85);
+            font-size: calc(var(--control-size) / 3);
+            backdrop-filter: blur(3px);
             user-select: none;
             touch-action: manipulation;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
         }
 
         .touch-btn.active {
-            background: rgba(0, 255, 204, 0.3);
-            transform: scale(0.95);
+            background: rgba(0, 255, 204, 0.28);
+            transform: scale(0.98);
             color: #fff;
         }
 
-        .btn-shoot { 
-            border-color: rgba(255, 0, 204, 0.3); 
-            color: rgba(255, 0, 204, 0.7); 
-            border-radius: 50%; 
+        .btn-shoot {
+            border-color: rgba(255, 0, 204, 0.18);
+            color: rgba(255, 0, 204, 0.85);
+            border-radius: 50%;
         }
-        .btn-shoot.active { 
-            background: rgba(255, 0, 204, 0.3); 
+        .btn-shoot.active {
+            background: rgba(255, 0, 204, 0.28);
         }
 
-        .row { display: flex; gap: 10px; }
+        /* small screens adjustments so things don't cut off */
+        @media (max-width: 420px) {
+            :root { --control-size: 14vmin; --control-gap: 2vmin; }
+            .btn { min-width: 120px; padding: 10px 20px; font-size:16px; }
+            h1 { font-size: 8vw; }
+        }
     </style>
 </head>
 <body>
@@ -215,11 +237,10 @@
         <div class="level-indicator" id="level-display">LEVEL 1</div>
 
         <div id="mobile-controls">
-            <div class="d-pad">
-                <div class="row">
-                    <div class="touch-btn" id="btn-left">◄</div>
-                    <div class="touch-btn" id="btn-right">►</div>
-                </div>
+            <div class="d-pad" id="dpad">
+                <div class="touch-btn" id="btn-left">◄</div>
+                <div style="width:calc(var(--control-gap));"></div>
+                <div class="touch-btn" id="btn-right">►</div>
             </div>
             <div class="actions">
                 <div class="touch-btn btn-shoot" id="btn-shoot">●</div>
@@ -266,7 +287,7 @@ runnerImg.crossOrigin = 'anonymous';
 runnerImg.src = 'https://i.ibb.co/mr5S9JpY/file-00000000e11c71faa2b897c73b80e875.png';
 
 /* ----------------------
-   AUDIO ENGINE (Synthesizer)
+   AUDIO ENGINE
    ---------------------- */
 const AudioSys = {
     ctx: null,
@@ -278,7 +299,9 @@ const AudioSys = {
         if (!this.ctx) return;
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
-        osc.type = type;
+        try {
+            osc.type = type;
+        } catch(e) { osc.type = 'sine'; }
         osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
         if(slide !== 0) osc.frequency.linearRampToValueAtTime(freq + slide, this.ctx.currentTime + dur);
 
@@ -290,17 +313,14 @@ const AudioSys = {
         osc.start();
         osc.stop(this.ctx.currentTime + dur);
     },
-    sfxJump() { this.playTone(150, 'square', 0.3, 0.1, 150); },
-    sfxShoot() { this.playTone(400, 'sawtooth', 0.15, 0.05, -200); },
+    sfxJump() { this.playTone(150, 'square', 0.28, 0.08, 150); },
+    sfxShoot() { this.playTone(400, 'sawtooth', 0.12, 0.05, -200); },
     sfxCollect() {
-        setTimeout(() => this.playTone(523.25, 'sine', 0.1, 0.1), 0);
-        setTimeout(() => this.playTone(659.25, 'sine', 0.1, 0.1), 50);
-        setTimeout(() => this.playTone(783.99, 'sine', 0.2, 0.1), 100);
+        setTimeout(() => this.playTone(523.25, 'sine', 0.08, 0.08), 0);
+        setTimeout(() => this.playTone(659.25, 'sine', 0.08, 0.08), 50);
+        setTimeout(() => this.playTone(783.99, 'sine', 0.12, 0.08), 100);
     },
-    sfxHit() { this.playTone(100, 'sawtooth', 0.2, 0.1, -50); },
-    sfxWin() {
-        [523, 659, 783, 1046].forEach((f, i) => setTimeout(() => this.playTone(f, 'square', 0.4, 0.1), i*150));
-    },
+    sfxHit() { this.playTone(100, 'sawtooth', 0.18, 0.08, -50); },
     speak(text) {
         if('speechSynthesis' in window) {
             const u = new SpeechSynthesisUtterance(text);
@@ -327,6 +347,7 @@ let GAME = {
     frame: 0
 };
 
+let KEY_TIMESTAMPS = { up: 0 };
 let KEYS = { left:false, right:false, up:false, shoot:false };
 
 let entities = {
@@ -367,18 +388,20 @@ class Player extends Entity {
         this.invuln = 0;
         this.animFrame = 0;
     }
+    performJump(strength=1.0) {
+        if (!this.grounded) return false;
+        this.vy = this.jumpPow * strength;
+        this.grounded = false;
+        AudioSys.sfxJump();
+        spawnDust(this.x + 15, this.y + 30);
+        return true;
+    }
     update() {
         if (KEYS.left) { this.vx = -this.speed; this.faceRight = false; }
         else if (KEYS.right) { this.vx = this.speed; this.faceRight = true; }
         else { this.vx *= 0.8; }
 
-        if (KEYS.up && this.grounded) {
-            this.vy = this.jumpPow;
-            this.grounded = false;
-            AudioSys.sfxJump();
-            spawnDust(this.x + 15, this.y + 30);
-        }
-
+        // (keyboard & touch jump handled by performJump calls)
         if (KEYS.shoot && this.cooldown <= 0) {
             this.cooldown = 15;
             AudioSys.sfxShoot();
@@ -395,11 +418,13 @@ class Player extends Entity {
         this.x += this.vx;
         this.y += this.vy;
 
-        this.grounded = false;
-        if (this.y + this.h > GAME.height) {
+        // floor death
+        if (this.y > GAME.height + 200) {
             hurtPlayer(999);
         }
 
+        // platform land detection
+        this.grounded = false;
         entities.platforms.forEach(p => {
             if (this.vy >= 0 &&
                 this.y + this.h <= p.y + p.h + this.vy &&
@@ -492,17 +517,16 @@ class Enemy extends Entity {
 class Note extends Entity {
     constructor(x, y) {
         super(x, y, 20, 20, '#ffff00');
+        this.baseY = y;
         this.bobOffset = Math.random() * 100;
     }
     update() {
-        // bobbing
-        // small vertical oscillation around original y is fine — but since we modify y directly during generation we store a base
-        this.y += Math.sin((GAME.frame + this.bobOffset) * 0.1) * 0.2;
+        this.y = this.baseY + Math.sin((GAME.frame + this.bobOffset) * 0.1) * 6;
     }
     draw(camX) {
         ctx.fillStyle = '#ffff00';
         ctx.font = '24px Arial';
-        ctx.fillText('♪', this.x - camX, this.y + 20);
+        ctx.fillText('♪', this.x - camX, this.y + 6);
     }
 }
 
@@ -533,6 +557,7 @@ function init() {
     resize();
     window.addEventListener('resize', resize);
 
+    // keyboard handling including press-duration for jump
     window.addEventListener('keydown', e => handleKey(e, true));
     window.addEventListener('keyup', e => handleKey(e, false));
 
@@ -542,42 +567,96 @@ function init() {
         showScreen('level-screen');
     };
 
+    // set up touch/mouse controls
     setupTouch('btn-left', 'left');
     setupTouch('btn-right', 'right');
-    setupTouch('btn-jump', 'up');
     setupTouch('btn-shoot', 'shoot');
+    setupJumpTouch('btn-jump'); // special for long / short press
 
-    window.addEventListener('touchstart', function onTouch() {
+    // show mobile-controls on first touch
+    function revealMobileControls() {
         document.getElementById('mobile-controls').style.display = 'block';
-        window.removeEventListener('touchstart', onTouch);
-    });
-
-    // quick mobile detection: if touch enabled show mobile controls button area but keep pointer-events none until touched
-    if('ontouchstart' in window) {
-        // leave hidden until first touch (handled above)
+        window.removeEventListener('touchstart', revealMobileControls);
     }
+    window.addEventListener('touchstart', revealMobileControls, {passive:true});
 
     requestAnimationFrame(loop);
 }
 
 function handleKey(e, isDown) {
     const k = e.code;
-    if(k==='ArrowLeft'||k==='KeyA') KEYS.left = isDown;
-    if(k==='ArrowRight'||k==='KeyD') KEYS.right = isDown;
-    if(k==='ArrowUp'||k==='KeyW'||k==='Space') KEYS.up = isDown;
-    if(k==='KeyZ'||k==='KeyF'||k==='ControlLeft') KEYS.shoot = isDown;
+    // handle left/right/shoot simply
+    if(k==='ArrowLeft'||k==='KeyA') { KEYS.left = isDown; e.preventDefault(); }
+    if(k==='ArrowRight'||k==='KeyD') { KEYS.right = isDown; e.preventDefault(); }
+    if(k==='KeyZ'||k==='KeyF'||k==='ControlLeft') { KEYS.shoot = isDown; }
+    // handle up / space for jump with press-duration
+    if(k==='ArrowUp' || k==='KeyW' || k==='Space') {
+        if(isDown) {
+            // key down start time
+            if(KEY_TIMESTAMPS.up === 0) KEY_TIMESTAMPS.up = Date.now();
+        } else {
+            // key up -> compute duration and perform jump
+            const down = KEY_TIMESTAMPS.up || 0;
+            const duration = Date.now() - down;
+            KEY_TIMESTAMPS.up = 0;
+            performJumpByDuration(duration);
+        }
+        e.preventDefault();
+    }
 }
 
+function performJumpByDuration(ms) {
+    const p = entities.player;
+    if(!p) return;
+    const threshold = 300; // ms for long press
+    if (ms >= threshold) {
+        p.performJump(1.45); // high jump
+    } else {
+        p.performJump(1.0); // short jump
+    }
+}
+
+/* Generic touch/mouse binder for left/right/shoot buttons */
 function setupTouch(id, key) {
     const el = document.getElementById(id);
-    el.addEventListener('touchstart', e => { e.preventDefault(); KEYS[key] = true; el.classList.add('active'); });
-    el.addEventListener('touchend', e => { e.preventDefault(); KEYS[key] = false; el.classList.remove('active'); });
-    // support mouse for desktop testing
-    el.addEventListener('mousedown', e => { e.preventDefault(); KEYS[key] = true; el.classList.add('active'); });
-    window.addEventListener('mouseup', e => { KEYS[key] = false; el.classList.remove('active'); });
+    if(!el) return;
+    const onStart = (e) => { e.preventDefault(); KEYS[key] = true; el.classList.add('active'); };
+    const onEnd = (e) => { e.preventDefault(); KEYS[key] = false; el.classList.remove('active'); };
+
+    el.addEventListener('touchstart', onStart, {passive:false});
+    el.addEventListener('touchend', onEnd, {passive:false});
+    el.addEventListener('mousedown', onStart);
+    window.addEventListener('mouseup', onEnd);
 }
 
+/* Special setup for jump button: detect long vs short press and call performJump immediately on release */
+function setupJumpTouch(id) {
+    const el = document.getElementById(id);
+    if(!el) return;
+    let startTime = 0;
+    const onStart = (e) => {
+        e.preventDefault();
+        startTime = Date.now();
+        el.classList.add('active');
+    };
+    const onEnd = (e) => {
+        e.preventDefault();
+        el.classList.remove('active');
+        const duration = Date.now() - startTime;
+        startTime = 0;
+        performJumpByDuration(duration);
+    };
+    el.addEventListener('touchstart', onStart, {passive:false});
+    el.addEventListener('touchend', onEnd, {passive:false});
+    el.addEventListener('mousedown', onStart);
+    window.addEventListener('mouseup', onEnd);
+}
+
+/* ----------------------
+   LEVEL / ENTITIES
+   ---------------------- */
 function startGame(levelIdx) {
+    AudioSys.init();
     GAME.level = levelIdx;
     GAME.state = 'playing';
     GAME.lives = 3;
@@ -638,16 +717,21 @@ function loadLevel(lvl) {
     entities.platforms.push(new Platform(length, cy, 300));
 }
 
+/* visuals / particles */
 function spawnDust(x, y) {
-    for(let i=0; i<5; i++) {
+    for(let i=0; i<8; i++) {
         entities.particles.push({
-            x: x, y: y, vx: (Math.random()-0.5)*5, vy: (Math.random()-0.5)*5,
-            life: 20, color: '#fff'
+            x: x, y: y, vx: (Math.random()-0.5)*6, vy: (Math.random()-1.5)*4,
+            life: 24 + Math.random()*20, color: '#fff'
         });
     }
 }
 
+/* ----------------------
+   GAMEPLAY HELPERS
+   ---------------------- */
 function hurtPlayer(dmg) {
+    if(!entities.player) return;
     if(entities.player.invuln > 0) return;
     GAME.lives--;
     AudioSys.sfxHit();
@@ -666,4 +750,207 @@ function hurtPlayer(dmg) {
     }
 }
 
-function gameOver(win=false) 
+function collectNote(note) {
+    GAME.score += 25;
+    AudioSys.sfxCollect();
+    note.dead = true;
+    updateHUD();
+}
+
+function reachGoal() {
+    AudioSys.sfxWin();
+    GAME.score += 500;
+    updateHUD();
+    gameOver(true);
+}
+
+/* ----------------------
+   RENDER / LOOP
+   ---------------------- */
+function loop() {
+    GAME.frame++;
+    update();
+    draw();
+    requestAnimationFrame(loop);
+}
+
+function update() {
+    if(GAME.state !== 'playing') return;
+
+    const p = entities.player;
+    if(!p) return;
+
+    // update entities
+    entities.bullets.forEach(b => b.update());
+    entities.enemies.forEach(e => e.update());
+    entities.collectibles.forEach(n => n.update());
+    entities.particles.forEach(pt => { pt.x += pt.vx; pt.y += pt.vy; pt.life--; pt.vy += 0.15; });
+
+    // cleanup
+    entities.bullets = entities.bullets.filter(b => !b.dead);
+    entities.particles = entities.particles.filter(pt => pt.life > 0);
+    entities.collectibles = entities.collectibles.filter(n => !n.dead);
+
+    // player update
+    p.update();
+
+    // bullet hit enemy
+    entities.bullets.forEach(b => {
+        entities.enemies.forEach(en => {
+            if(!b.dead && b.x > en.x && b.x < en.x + en.w && b.y > en.y && b.y < en.y + en.h) {
+                b.dead = true;
+                en.dead = true;
+            }
+        });
+    });
+    entities.enemies = entities.enemies.filter(e => !e.dead);
+
+    // player collect notes
+    entities.collectibles.forEach(n => {
+        if(p.x < n.x + 20 && p.x + p.w > n.x - 8 && p.y < n.y + 20 && p.y + p.h > n.y - 8) {
+            collectNote(n);
+        }
+    });
+
+    // enemy collisions
+    entities.enemies.forEach(en => {
+        if(p.x + p.w > en.x && p.x < en.x + en.w && p.y + p.h > en.y && p.y < en.y + en.h) {
+            // if player falling onto enemy (stomp)
+            if(p.vy > 0 && p.y + p.h - en.y < 16) {
+                en.dead = true;
+                p.vy = -8;
+                GAME.score += 50;
+                updateHUD();
+            } else {
+                hurtPlayer(1);
+            }
+        }
+    });
+
+    // camera follow
+    GAME.cameraX = Math.max(0, p.x - (GAME.width * 0.35));
+
+    // goal check
+    if(entities.goal && p.x > entities.goal.x) {
+        reachGoal();
+    }
+}
+
+function draw() {
+    // resize canvas if needed (pixel ratio)
+    if (canvas.width !== GAME.width || canvas.height !== GAME.height) {
+        canvas.width = GAME.width;
+        canvas.height = GAME.height;
+    }
+
+    // clear
+    ctx.fillStyle = '#111';
+    ctx.fillRect(0,0,GAME.width,GAME.height);
+
+    // draw decorations background
+    ctx.fillStyle = '#0b0b0b';
+    ctx.fillRect(0, GAME.height - 160, GAME.width, 160);
+
+    // platforms
+    entities.platforms.forEach(pf => pf.draw(GAME.cameraX));
+
+    // decorations (simple)
+    entities.decorations.forEach(d => {
+        if(d.type === 'staff') {
+            ctx.fillStyle = '#555';
+            ctx.fillRect(d.x - GAME.cameraX, d.y, 6, 120);
+            ctx.fillStyle = '#777';
+            ctx.fillRect(d.x - GAME.cameraX - 40, d.y + 10, 80, 2);
+        }
+    });
+
+    // notes
+    entities.collectibles.forEach(n => n.draw(GAME.cameraX));
+
+    // enemies
+    entities.enemies.forEach(e => e.draw(GAME.cameraX));
+
+    // bullets
+    entities.bullets.forEach(b => b.draw(GAME.cameraX));
+
+    // player
+    if(entities.player) entities.player.draw(GAME.cameraX);
+
+    // particles
+    entities.particles.forEach(pt => {
+        ctx.fillStyle = pt.color;
+        ctx.globalAlpha = Math.max(0, Math.min(1, pt.life / 40));
+        ctx.fillRect(pt.x - GAME.cameraX, pt.y, 3, 3);
+        ctx.globalAlpha = 1;
+    });
+
+    // goal marker
+    if(entities.goal) {
+        ctx.fillStyle = '#00ff88';
+        ctx.fillRect(entities.goal.x - GAME.cameraX, entities.goal.y, entities.goal.w, entities.goal.h);
+    }
+}
+
+/* ----------------------
+   HUD & UI
+   ---------------------- */
+function updateHUD() {
+    document.getElementById('score-display').textContent = 'SCORE: ' + String(GAME.score).padStart(4,'0');
+    document.getElementById('lives-display').textContent = '♥ x ' + GAME.lives;
+    document.getElementById('level-display').textContent = 'LEVEL ' + GAME.level;
+}
+
+function showScreen(screenId) {
+    const screens = ['start-screen','level-screen','gameover-screen'];
+    screens.forEach(s => {
+        const el = document.getElementById(s);
+        if(!el) return;
+        if(screenId === null) el.classList.add('hidden'); // hide all
+        else if(s === screenId) el.classList.remove('hidden');
+        else el.classList.add('hidden');
+    });
+    if (screenId === null) {
+        // hide overlays
+        screens.forEach(s => document.getElementById(s)?.classList.add('hidden'));
+        document.getElementById('mobile-controls').style.display = 'block';
+    } else {
+        document.getElementById('mobile-controls').style.display = 'none';
+    }
+}
+
+function showLevelSelect() {
+    showScreen('level-screen');
+}
+
+/* ----------------------
+   GAME OVER
+   ---------------------- */
+function gameOver(win=false) {
+    GAME.state = 'menu';
+    const goTitle = document.getElementById('go-title');
+    const goScore = document.getElementById('go-score');
+    goTitle.textContent = win ? 'LEVEL COMPLETE!' : 'GAME OVER';
+    goScore.textContent = 'Final Score: ' + GAME.score;
+    showScreen('gameover-screen');
+}
+
+/* ----------------------
+   RESIZE
+   ---------------------- */
+function resize() {
+    const rect = document.getElementById('game-container').getBoundingClientRect();
+    GAME.width = Math.max(320, Math.floor(rect.width));
+    GAME.height = Math.max(240, Math.floor(rect.height));
+    // scale control-size based on smallest dimension (CSS handles visual sizing)
+    // ensure HUD updated
+    updateHUD();
+}
+
+/* init after DOM ready */
+window.addEventListener('load', () => {
+    init();
+    showScreen('start-screen');
+});
+</script>
+</body>
+</html>
