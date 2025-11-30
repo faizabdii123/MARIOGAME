@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title> A GAME BY FAIZ SIR </title>
+    <title>SYMPHONY BLASTER - By Faiz Sir</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&display=swap');
 
         body {
             margin: 0;
             padding: 0;
-            background-color: #111;
+            background-color: #050505;
             overflow: hidden;
             font-family: 'Orbitron', sans-serif;
-            touch-action: none;
+            touch-action: none; /* Prevents scroll/zoom on mobile */
             user-select: none;
             -webkit-user-select: none;
         }
@@ -22,7 +22,7 @@
             position: relative;
             width: 100vw;
             height: 100vh;
-            background-color: #1a1a1a;
+            background: linear-gradient(to bottom, #1a1a1a, #000);
         }
 
         canvas {
@@ -48,9 +48,11 @@
             left: 20px;
             color: #00ffcc;
             text-shadow: 0 0 10px #00ffcc;
-            font-size: 20px;
+            font-size: clamp(16px, 4vw, 24px);
             display: flex;
             gap: 20px;
+            font-weight: bold;
+            z-index: 5;
         }
 
         .level-indicator {
@@ -59,7 +61,9 @@
             right: 20px;
             color: #ff00cc;
             text-shadow: 0 0 10px #ff00cc;
-            font-size: 20px;
+            font-size: clamp(16px, 4vw, 24px);
+            font-weight: bold;
+            z-index: 5;
         }
 
         /* Screens */
@@ -69,14 +73,14 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(10, 10, 15, 0.9);
+            background: rgba(10, 10, 15, 0.95);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             pointer-events: auto;
             transition: opacity 0.3s;
-            z-index: 10;
+            z-index: 20; /* Higher than HUD and Controls */
             backdrop-filter: blur(5px);
         }
 
@@ -87,21 +91,23 @@
         }
 
         h1 {
-            font-size: 4vw;
+            font-size: clamp(30px, 6vw, 60px);
             color: #00ffcc;
             text-transform: uppercase;
             letter-spacing: 5px;
             margin-bottom: 10px;
-            text-shadow: 2px 2px 0px #ff00cc, -2px -2px 0px #00ccff;
+            text-shadow: 3px 3px 0px #ff00cc, -2px -2px 0px #00ccff;
             text-align: center;
+            line-height: 1.2;
         }
 
         p {
             color: #ccc;
-            font-size: 1.2em;
+            font-size: clamp(14px, 3vw, 18px);
             margin-bottom: 30px;
             text-align: center;
             max-width: 600px;
+            padding: 0 20px;
         }
 
         /* Buttons */
@@ -123,7 +129,7 @@
             text-transform: uppercase;
             transition: transform 0.1s, box-shadow 0.2s;
             box-shadow: 0 0 15px rgba(255, 0, 204, 0.5);
-            border-radius: 5px;
+            border-radius: 8px;
             min-width: 150px;
         }
 
@@ -132,75 +138,95 @@
             box-shadow: 0 0 25px rgba(255, 0, 204, 0.8);
         }
 
+        .btn:active {
+            transform: scale(0.95);
+        }
+
         .btn.secondary {
-            background: transparent;
+            background: rgba(0, 0, 0, 0.8);
             border: 2px solid #00ffcc;
             color: #00ffcc;
             box-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
         }
         
-        /* Mobile Controls - UPDATED */
+        /* Mobile Controls - SMALLER & FIXED */
         #mobile-controls {
             position: absolute;
-            bottom: 0; /* Anchored to very bottom */
+            bottom: 10px; /* Kept very low */
             left: 0;
             width: 100%;
-            height: 100px; /* Reduced height to keep it low */
+            height: 80px; /* Reduced container height */
             pointer-events: none;
-            display: none;
-            padding: 0 10px;
+            display: none; /* Hidden by default, JS controls this */
+            padding: 0 15px;
             box-sizing: border-box;
-            z-index: 100;
+            z-index: 15; /* Below screens but above game */
         }
 
         .d-pad { 
             position: absolute; 
             left: 10px; 
-            bottom: 10px; 
+            bottom: 5px; 
             pointer-events: auto; 
         }
         
         .actions { 
             position: absolute; 
             right: 10px; 
-            bottom: 10px; 
+            bottom: 5px; 
             pointer-events: auto; 
             display: flex; 
             gap: 15px;
         }
 
         .touch-btn {
-            width: 65px;
-            height: 65px;
-            background: rgba(255, 255, 255, 0.1); /* Very transparent */
-            border: 1px solid rgba(0, 255, 204, 0.3); /* Subtle border */
-            border-radius: 12px;
+            width: 55px; /* Reduced from 70px */
+            height: 55px;
+            background: rgba(0, 0, 0, 0.5); 
+            border: 2px solid #00ffcc; /* Thinner border */
+            border-radius: 10px;
             display: flex;
             justify-content: center;
             align-items: center;
-            color: rgba(0, 255, 204, 0.7);
-            font-size: 24px;
+            color: #fff;
+            font-size: 24px; /* Smaller font */
             backdrop-filter: blur(2px);
             user-select: none;
             touch-action: manipulation;
+            box-shadow: 0 0 5px rgba(0, 255, 204, 0.3);
+            transition: all 0.1s;
         }
 
-        .touch-btn.active {
-            background: rgba(0, 255, 204, 0.3);
+        .touch-btn:active, .touch-btn.active {
+            background: #00ffcc;
+            color: #000;
             transform: scale(0.95);
-            color: #fff;
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.6);
+            opacity: 0.8;
         }
 
         .btn-shoot { 
-            border-color: rgba(255, 0, 204, 0.3); 
-            color: rgba(255, 0, 204, 0.7); 
+            border-color: #ff00cc; 
             border-radius: 50%; 
         }
-        .btn-shoot.active { 
-            background: rgba(255, 0, 204, 0.3); 
+        
+        .btn-shoot:active, .btn-shoot.active { 
+            background: #ff00cc; 
+            box-shadow: 0 0 15px rgba(255, 0, 204, 0.6);
         }
 
         .row { display: flex; gap: 10px; }
+        
+        /* Desktop Hint */
+        #pc-hint {
+            position: absolute;
+            bottom: 10px;
+            width: 100%;
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -214,6 +240,7 @@
         </div>
         <div class="level-indicator" id="level-display">LEVEL 1</div>
 
+        <!-- Controls are now hidden by CSS display:none by default -->
         <div id="mobile-controls">
             <div class="d-pad">
                 <div class="row">
@@ -231,8 +258,9 @@
     <!-- Main Menu -->
     <div id="start-screen" class="screen">
         <h1>SYMPHONY BLASTER</h1>
-        <p>A rhythmic run & gun adventure.<br>Jump on keys. Collect notes. Blast the static.</p>
+        <p>A GAME BY FAIZ SIR<br><br>Jump on keys. Collect notes. Blast the static.</p>
         <button class="btn" id="btn-start-game">START GAME</button>
+        <div id="pc-hint" style="position:relative; margin-top:20px; color:#888;">Controls: Arrows/WASD to Move • Space to Shoot</div>
     </div>
 
     <!-- Level Select -->
@@ -290,21 +318,20 @@ const AudioSys = {
         osc.start();
         osc.stop(this.ctx.currentTime + dur);
     },
-    sfxJump() { this.playTone(150, 'square', 0.3, 0.1, 150); },
-    sfxShoot() { this.playTone(400, 'sawtooth', 0.15, 0.05, -200); },
+    sfxJump() { this.playTone(150, 'square', 0.2, 0.1, 150); },
+    sfxShoot() { this.playTone(400, 'sawtooth', 0.1, 0.05, -200); },
     sfxCollect() {
         setTimeout(() => this.playTone(523.25, 'sine', 0.1, 0.1), 0);
-        setTimeout(() => this.playTone(659.25, 'sine', 0.1, 0.1), 50);
         setTimeout(() => this.playTone(783.99, 'sine', 0.2, 0.1), 100);
     },
-    sfxHit() { this.playTone(100, 'sawtooth', 0.2, 0.1, -50); },
+    sfxHit() { this.playTone(100, 'sawtooth', 0.3, 0.2, -50); },
     sfxWin() {
         [523, 659, 783, 1046].forEach((f, i) => setTimeout(() => this.playTone(f, 'square', 0.4, 0.1), i*150));
     },
     speak(text) {
         if('speechSynthesis' in window) {
             const u = new SpeechSynthesisUtterance(text);
-            u.rate = 1.2; u.pitch = 0.9;
+            u.rate = 1.1; u.pitch = 0.9;
             window.speechSynthesis.speak(u);
         }
     }
@@ -316,10 +343,13 @@ const AudioSys = {
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
+// State to track if user is on mobile/touch device
+let isTouchDevice = false;
+
 let GAME = {
     state: 'menu', // menu, playing, gameover
     width: 0, height: 0,
-    gravity: 0.6,
+    gravity: 0.8,
     cameraX: 0,
     level: 1,
     score: 0,
@@ -358,63 +388,65 @@ class Entity {
 
 class Player extends Entity {
     constructor(x, y) {
-        super(x, y, 30, 30, '#00ffcc');
+        super(x, y, 30, 40, '#00ffcc');
         this.speed = 6;
-        this.jumpPow = -14;
+        this.jumpPow = -15;
         this.grounded = false;
         this.faceRight = true;
         this.cooldown = 0;
         this.invuln = 0;
-        this.animFrame = 0;
     }
     update() {
+        // Movement
         if (KEYS.left) { this.vx = -this.speed; this.faceRight = false; }
         else if (KEYS.right) { this.vx = this.speed; this.faceRight = true; }
-        else { this.vx *= 0.8; }
+        else { this.vx *= 0.8; } // Friction
 
+        // Jump
         if (KEYS.up && this.grounded) {
             this.vy = this.jumpPow;
             this.grounded = false;
             AudioSys.sfxJump();
-            spawnDust(this.x + 15, this.y + 30);
+            spawnDust(this.x + this.w/2, this.y + this.h);
         }
 
+        // Shoot
         if (KEYS.shoot && this.cooldown <= 0) {
-            this.cooldown = 15;
+            this.cooldown = 20;
             AudioSys.sfxShoot();
             entities.bullets.push(new Bullet(
                 this.faceRight ? this.x + this.w : this.x - 15,
-                this.y + 10,
+                this.y + 15,
                 this.faceRight ? 12 : -12
             ));
         }
         if(this.cooldown > 0) this.cooldown--;
         if(this.invuln > 0) this.invuln--;
 
+        // Physics
         this.vy += GAME.gravity;
         this.x += this.vx;
         this.y += this.vy;
 
+        // Platform Collision
         this.grounded = false;
-        if (this.y + this.h > GAME.height) {
-            hurtPlayer(999);
-        }
-
         entities.platforms.forEach(p => {
             if (this.vy >= 0 &&
-                this.y + this.h <= p.y + p.h + this.vy &&
+                this.y + this.h <= p.y + p.h + this.vy && 
+                this.y + this.h + this.vy >= p.y &&       
                 this.x + this.w > p.x && this.x < p.x + p.w) {
 
-                if (this.y + this.h >= p.y) {
-                    this.y = p.y - this.h;
-                    this.vy = 0;
-                    this.grounded = true;
-                }
+                this.y = p.y - this.h;
+                this.vy = 0;
+                this.grounded = true;
             }
         });
 
+        if (this.y > GAME.height + 100) {
+            hurtPlayer(999);
+        }
+
         if(this.x < 0) this.x = 0;
-        this.animFrame++;
     }
 
     draw(camX) {
@@ -422,18 +454,21 @@ class Player extends Entity {
 
         const img = runnerImg;
         const drawW = Math.max(this.w * 1.8, 48);
-        const drawH = Math.max(this.h * 1.8, 48);
+        const drawH = Math.max(this.h * 1.5, 48);
         const cx = this.x - camX + this.w / 2;
         const cy = this.y + this.h / 2;
 
         ctx.save();
         ctx.translate(cx, cy);
         ctx.scale(this.faceRight ? 1 : -1, 1);
+        
         if (img.complete && img.naturalWidth !== 0) {
             ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
         } else {
             ctx.fillStyle = this.color;
             ctx.fillRect(-this.w/2, -this.h/2, this.w, this.h);
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(4, -10, 8, 4);
         }
         ctx.restore();
     }
@@ -441,9 +476,9 @@ class Player extends Entity {
 
 class Bullet extends Entity {
     constructor(x, y, vx) {
-        super(x, y, 15, 5, '#ff00cc');
+        super(x, y, 15, 6, '#ff00cc');
         this.vx = vx;
-        this.life = 50;
+        this.life = 60;
     }
     update() {
         this.x += this.vx;
@@ -451,21 +486,20 @@ class Bullet extends Entity {
         if(this.life <= 0) this.dead = true;
     }
     draw(camX) {
-        ctx.strokeStyle = this.color;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(this.x - camX, this.y);
-        ctx.lineTo(this.x - camX + (this.vx>0?15:-15), this.y);
-        ctx.stroke();
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.x - camX, this.y, this.w, this.h);
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(this.x - camX + 2, this.y+1, 8, 2);
     }
 }
 
 class Enemy extends Entity {
     constructor(x, y) {
-        super(x, y, 35, 35, '#ff3333');
+        super(x, y, 40, 40, '#ff3333');
         this.startX = x;
-        this.walkDist = 120;
+        this.walkDist = 150;
         this.vx = -2;
+        this.health = 2;
     }
     update() {
         this.x += this.vx;
@@ -477,51 +511,64 @@ class Enemy extends Entity {
         ctx.fillRect(this.x - camX, this.y, this.w, this.h);
         ctx.fillStyle = '#222';
         ctx.beginPath();
-        ctx.arc(this.x - camX + 17.5, this.y + 17.5, 12, 0, Math.PI*2);
+        ctx.arc(this.x - camX + 12, this.y + 15, 5, 0, Math.PI*2);
+        ctx.arc(this.x - camX + 28, this.y + 15, 5, 0, Math.PI*2);
         ctx.fill();
-        if(Math.floor(Date.now()/200)%2===0) {
-            ctx.strokeStyle = '#ffaa00';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.arc(this.x - camX + 17.5, this.y + 17.5, 16, 0, Math.PI*2);
-            ctx.stroke();
+        ctx.strokeStyle = '#222';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(this.x - camX + 5, this.y + 10);
+        ctx.lineTo(this.x - camX + 15, this.y + 15);
+        ctx.moveTo(this.x - camX + 35, this.y + 10);
+        ctx.lineTo(this.x - camX + 25, this.y + 15);
+        ctx.stroke();
+    }
+    takeDamage() {
+        this.health--;
+        if(this.health <= 0) {
+            this.dead = true;
+            GAME.score += 50;
+            spawnExplosion(this.x + this.w/2, this.y + this.h/2);
+            updateHUD();
         }
     }
 }
 
 class Note extends Entity {
     constructor(x, y) {
-        super(x, y, 20, 20, '#ffff00');
+        super(x, y, 20, 30, '#ffff00');
+        this.baseY = y;
         this.bobOffset = Math.random() * 100;
     }
     update() {
-        // bobbing
-        // small vertical oscillation around original y is fine — but since we modify y directly during generation we store a base
-        this.y += Math.sin((GAME.frame + this.bobOffset) * 0.1) * 0.2;
+        this.y = this.baseY + Math.sin((GAME.frame + this.bobOffset) * 0.1) * 5;
     }
     draw(camX) {
         ctx.fillStyle = '#ffff00';
-        ctx.font = '24px Arial';
-        ctx.fillText('♪', this.x - camX, this.y + 20);
+        ctx.font = 'bold 30px Arial';
+        ctx.shadowColor = "#ffff00";
+        ctx.shadowBlur = 10;
+        ctx.fillText('♪', this.x - camX, this.y + 25);
+        ctx.shadowBlur = 0;
     }
 }
 
 class Platform extends Entity {
     constructor(x, y, w) {
-        super(x, y, w, 30, '#fff');
-        this.isBlackKey = Math.random() > 0.7;
+        super(x, y, w, 40, '#fff');
+        this.isBlackKey = Math.random() > 0.6;
     }
     draw(camX) {
         if(this.isBlackKey) {
-            ctx.fillStyle = '#222';
+            ctx.fillStyle = '#111';
             ctx.fillRect(this.x - camX, this.y, this.w, this.h);
-            ctx.fillStyle = '#444';
-            ctx.fillRect(this.x - camX + 2, this.y + 2, this.w - 4, this.h - 10);
+            ctx.fillStyle = '#333';
+            ctx.fillRect(this.x - camX + 4, this.y + 4, this.w - 8, this.h - 8);
         } else {
             ctx.fillStyle = '#eee';
             ctx.fillRect(this.x - camX, this.y, this.w, this.h);
             ctx.fillStyle = '#ccc';
-            ctx.fillRect(this.x - camX, this.y + this.h - 5, this.w, 5);
+            ctx.fillRect(this.x - camX, this.y + this.h - 8, this.w, 8);
         }
     }
 }
@@ -532,32 +579,34 @@ class Platform extends Entity {
 function init() {
     resize();
     window.addEventListener('resize', resize);
-
+    
     window.addEventListener('keydown', e => handleKey(e, true));
     window.addEventListener('keyup', e => handleKey(e, false));
 
     document.getElementById('btn-start-game').onclick = () => {
         AudioSys.init();
-        AudioSys.speak("Select Track");
         showScreen('level-screen');
     };
 
-    setupTouch('btn-left', 'left');
-    setupTouch('btn-right', 'right');
-    setupTouch('btn-jump', 'up');
-    setupTouch('btn-shoot', 'shoot');
-
-    window.addEventListener('touchstart', function onTouch() {
-        document.getElementById('mobile-controls').style.display = 'block';
-        window.removeEventListener('touchstart', onTouch);
-    });
-
-    // quick mobile detection: if touch enabled show mobile controls button area but keep pointer-events none until touched
-    if('ontouchstart' in window) {
-        // leave hidden until first touch (handled above)
+    // Detect touch capability initially
+    if('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+        isTouchDevice = true;
+        // Do NOT show controls yet. We wait for game start.
+        setupTouch('btn-left', 'left');
+        setupTouch('btn-right', 'right');
+        setupTouch('btn-jump', 'up');
+        setupTouch('btn-shoot', 'shoot');
     }
 
-    requestAnimationFrame(loop);
+    loop();
+}
+
+function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    GAME.width = canvas.width;
+    GAME.height = canvas.height;
+    ctx.imageSmoothingEnabled = false;
 }
 
 function handleKey(e, isDown) {
@@ -570,312 +619,38 @@ function handleKey(e, isDown) {
 
 function setupTouch(id, key) {
     const el = document.getElementById(id);
-    el.addEventListener('touchstart', e => { e.preventDefault(); KEYS[key] = true; el.classList.add('active'); });
-    el.addEventListener('touchend', e => { e.preventDefault(); KEYS[key] = false; el.classList.remove('active'); });
-    // support mouse for desktop testing
-    el.addEventListener('mousedown', e => { e.preventDefault(); KEYS[key] = true; el.classList.add('active'); });
-    window.addEventListener('mouseup', e => { KEYS[key] = false; el.classList.remove('active'); });
+    const handleStart = (e) => { e.preventDefault(); KEYS[key] = true; el.classList.add('active'); };
+    const handleEnd = (e) => { e.preventDefault(); KEYS[key] = false; el.classList.remove('active'); };
+    
+    el.addEventListener('touchstart', handleStart);
+    el.addEventListener('touchend', handleEnd);
+    el.addEventListener('mousedown', handleStart);
+    el.addEventListener('mouseup', handleEnd);
+    el.addEventListener('mouseout', handleEnd);
 }
 
-function startGame(levelIdx) {
-    GAME.level = levelIdx;
-    GAME.state = 'playing';
-    GAME.lives = 3;
-    GAME.score = 0;
-    updateHUD();
-    showScreen(null);
-    loadLevel(levelIdx);
-    AudioSys.speak("Track " + levelIdx + " Start");
-}
-
-function loadLevel(lvl) {
-    entities.player = new Player(100, 100);
-    entities.platforms = [];
-    entities.enemies = [];
-    entities.collectibles = [];
-    entities.bullets = [];
-    entities.particles = [];
-    entities.decorations = [];
-    GAME.cameraX = 0;
-
-    let length = 3000 + (lvl * 2000);
-    let gapSize = (lvl === 1) ? 100 : (lvl === 2) ? 150 : 200;
-    let enemyChance = 0.3 + (lvl * 0.1);
-
-    let cx = 0;
-    let cy = GAME.height - 100;
-
-    entities.platforms.push(new Platform(0, cy, 400));
-    cx += 400;
-
-    while(cx < length) {
-        cx += 50 + Math.random() * gapSize;
-        let hChange = (Math.random() - 0.5) * 200;
-        cy += hChange;
-        if(cy > GAME.height - 50) cy = GAME.height - 100;
-        if(cy < 200) cy = 300;
-
-        let w = 100 + Math.random() * 200;
-        entities.platforms.push(new Platform(cx, cy, w));
-
-        if(Math.random() > 0.5) {
-            entities.decorations.push({x: cx, y: cy - 200, type: 'staff'});
-        }
-
-        if(Math.random() < enemyChance) {
-            entities.enemies.push(new Enemy(cx + w/2, cy - 35));
-        }
-
-        if(Math.random() < 0.5) {
-            let noteY = cy - 80 - Math.random()*100;
-            entities.collectibles.push(new Note(cx + w/2, noteY));
-        }
-
-        cx += w;
-    }
-
-    entities.goal = { x: length + 100, y: cy - 150, w: 40, h: 150 };
-    entities.platforms.push(new Platform(length, cy, 300));
-}
-
-function spawnDust(x, y) {
-    for(let i=0; i<5; i++) {
-        entities.particles.push({
-            x: x, y: y, vx: (Math.random()-0.5)*5, vy: (Math.random()-0.5)*5,
-            life: 20, color: '#fff'
-        });
-    }
-}
-
-function hurtPlayer(dmg) {
-    if(entities.player.invuln > 0) return;
-    GAME.lives--;
-    AudioSys.sfxHit();
-    entities.player.invuln = 60;
-    updateHUD();
-
-    if(GAME.lives <= 0) {
-        gameOver();
+// Function to manage UI visibility
+function toggleMobileControls(show) {
+    const ctrl = document.getElementById('mobile-controls');
+    if (show && isTouchDevice) {
+        ctrl.style.display = 'block';
     } else {
-        entities.player.vy = -10;
-        if(entities.player.y > GAME.height) {
-            entities.player.y = 0;
-            entities.player.x = Math.max(0, entities.player.x - 200);
-            entities.player.vx = 0;
-        }
+        ctrl.style.display = 'none';
     }
 }
 
-function gameOver(win=false) {
-    GAME.state = 'gameover';
-    const title = document.getElementById('go-title');
-    const score = document.getElementById('go-score');
-
-    if(win) {
-        title.innerText = "TRACK COMPLETE";
-        title.style.color = "#00ffcc";
-        AudioSys.sfxWin();
-        AudioSys.speak("Track Complete");
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+    if(id) {
+        // If showing a menu screen, HIDE controls
+        document.getElementById(id).classList.remove('hidden');
+        toggleMobileControls(false);
     } else {
-        title.innerText = "SYSTEM CRASH";
-        title.style.color = "#ff0055";
-        AudioSys.speak("System Failure");
+        // If id is null (Game Playing), SHOW controls if mobile
+        toggleMobileControls(true);
     }
-    score.innerText = "Final Score: " + GAME.score;
-    showScreen('gameover-screen');
 }
 
 function updateHUD() {
     document.getElementById('score-display').innerText = `SCORE: ${GAME.score.toString().padStart(4, '0')}`;
-    let hearts = "";
-    for(let i=0; i<GAME.lives; i++) hearts += "♥ ";
-    document.getElementById('lives-display').innerText = hearts;
-    document.getElementById('level-display').innerText = `TRACK 0${GAME.level}`;
-}
-
-function showScreen(id) {
-    const screens = ['start-screen','level-screen','gameover-screen'];
-    screens.forEach(s => {
-        const el = document.getElementById(s);
-        if(!el) return;
-        if(id === s) {
-            el.classList.remove('hidden');
-        } else {
-            el.classList.add('hidden');
-        }
-    });
-    // if null hide all
-    if(id === null) {
-        screens.forEach(s => document.getElementById(s).classList.add('hidden'));
-    }
-}
-
-function showLevelSelect() {
-    showScreen('level-screen');
-}
-
-function resize() {
-    GAME.width = window.innerWidth;
-    GAME.height = window.innerHeight;
-    canvas.width = GAME.width * devicePixelRatio;
-    canvas.height = GAME.height * devicePixelRatio;
-    canvas.style.width = GAME.width + 'px';
-    canvas.style.height = GAME.height + 'px';
-    ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
-}
-
-/* ----------------------
-   GAME LOOP
-   ---------------------- */
-function loop() {
-    GAME.frame++;
-    update();
-    render();
-    requestAnimationFrame(loop);
-}
-
-function update() {
-    if(GAME.state !== 'playing') return;
-
-    const p = entities.player;
-    if(!p) return;
-
-    p.update();
-
-    // update camera: follow player smoothly
-    const targetX = p.x - GAME.width * 0.3;
-    GAME.cameraX += (targetX - GAME.cameraX) * 0.08;
-
-    entities.bullets.forEach(b => b.update());
-    entities.enemies.forEach(e => e.update());
-    entities.collectibles.forEach(c => c.update());
-
-    // particles
-    entities.particles.forEach(pf => {
-        pf.x += pf.vx; pf.y += pf.vy; pf.life--;
-    });
-
-    // collisions: bullets vs enemies
-    entities.bullets.forEach(b => {
-        entities.enemies.forEach(en => {
-            if(!b.dead && !en.dead) {
-                let a = {l:b.x, r:b.x+b.w, t:b.y, b:b.y+b.h};
-                let c = {l:en.x, r:en.x+en.w, t:en.y, b:en.y+en.h};
-                if(a.l < c.r && a.r > c.l && a.t < c.b && a.b > c.t) {
-                    b.dead = true;
-                    en.dead = true;
-                    GAME.score += 50;
-                    AudioSys.sfxHit();
-                    updateHUD();
-                }
-            }
-        });
-    });
-
-    // player vs enemies
-    entities.enemies.forEach(en => {
-        if(en.dead) return;
-        if(entities.player.checkColl(en)) {
-            // if player falling on top -> stomp
-            if(entities.player.vy > 2 && (entities.player.y + entities.player.h - 5) < en.y + 10) {
-                en.dead = true;
-                entities.player.vy = -8;
-                GAME.score += 100;
-                AudioSys.sfxCollect();
-                updateHUD();
-            } else {
-                hurtPlayer(1);
-            }
-        }
-    });
-
-    // player vs collectibles
-    entities.collectibles.forEach((col, idx) => {
-        if(entities.player.checkColl(col)) {
-            // collect
-            entities.collectibles[idx].dead = true;
-            GAME.score += 20;
-            AudioSys.sfxCollect();
-            updateHUD();
-        }
-    });
-
-    // goal reach
-    if(entities.goal && entities.player.x > entities.goal.x) {
-        gameOver(true);
-    }
-
-    // cleanup dead
-    entities.bullets = entities.bullets.filter(b => !b.dead && b.x > GAME.cameraX - 500 && b.x < GAME.cameraX + GAME.width + 500);
-    entities.enemies = entities.enemies.filter(e => !e.dead);
-    entities.collectibles = entities.collectibles.filter(c => !c.dead);
-    entities.particles = entities.particles.filter(pf => pf.life > 0);
-}
-
-function render() {
-    // background
-    ctx.fillStyle = '#0c0c0f';
-    ctx.fillRect(0, 0, GAME.width, GAME.height);
-
-    // parallax decoration (simple)
-    ctx.save();
-    ctx.fillStyle = '#070707';
-    for(let i=0;i<40;i++){
-        const dx = (i*300 - (GAME.cameraX * 0.2) % 300);
-        ctx.fillRect(dx % (GAME.width+300) - 100, GAME.height - 20 - (i%5)*10, 200, 6);
-    }
-    ctx.restore();
-
-    // draw platforms
-    entities.platforms.forEach(p => p.draw(GAME.cameraX));
-
-    // decorations (staffs)
-    entities.decorations.forEach(d => {
-        ctx.strokeStyle = '#666';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(d.x - GAME.cameraX, d.y);
-        ctx.lineTo(d.x - GAME.cameraX, d.y + 120);
-        ctx.stroke();
-        // staff lines
-        ctx.strokeStyle = '#444';
-        for(let i=0;i<5;i++){
-            ctx.beginPath();
-            ctx.moveTo(d.x - GAME.cameraX - 30, d.y + 20 + i*10);
-            ctx.lineTo(d.x - GAME.cameraX + 30, d.y + 20 + i*10);
-            ctx.stroke();
-        }
-    });
-
-    // draw collectibles
-    entities.collectibles.forEach(c => c.draw(GAME.cameraX));
-
-    // draw goal
-    if(entities.goal) {
-        ctx.fillStyle = '#00ffcc';
-        ctx.fillRect(entities.goal.x - GAME.cameraX, entities.goal.y, entities.goal.w, entities.goal.h);
-        ctx.fillStyle = '#111';
-        ctx.font = '18px Arial';
-        ctx.fillText('GOAL', entities.goal.x - GAME.cameraX + 6, entities.goal.y + 30);
-    }
-
-    // draw enemies & bullets & particles & player
-    entities.enemies.forEach(e => e.draw(GAME.cameraX));
-    entities.bullets.forEach(b => b.draw(GAME.cameraX));
-    entities.particles.forEach(pf => {
-        ctx.fillStyle = pf.color;
-        ctx.fillRect(pf.x - GAME.cameraX, pf.y, 3, 3);
-    });
-
-    if(entities.player) entities.player.draw(GAME.cameraX);
-}
-
-/* ----------------------
-   Start
-   ---------------------- */
-init();
-showScreen('start-screen');
-updateHUD();
-</script>
-</body>
-</html>
+    document.getElementById('lives-display').innerText = `♥ x ${GAME.l
