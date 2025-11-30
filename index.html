@@ -653,4 +653,231 @@ function showScreen(id) {
 
 function updateHUD() {
     document.getElementById('score-display').innerText = `SCORE: ${GAME.score.toString().padStart(4, '0')}`;
-    document.getElementById('lives-display').innerText = `♥ x ${GAME.l
+    document.getElementById('lives-display').innerText = `♥ x ${GAME.lives}`;
+    document.getElementById('level-display').innerText = `LEVEL ${GAME.level}`;
+}
+
+function startGame(levelIdx) {
+    GAME.level = levelIdx;
+    GAME.state = 'playing';
+    GAME.lives = 3;
+    GAME.score = 0;
+    GAME.frame = 0;
+    KEYS = { left:false, right:false, up:false, shoot:false };
+    
+    updateHUD();
+    showScreen(null); // This triggers toggleMobileControls(true)
+    loadLevel(levelIdx);
+    AudioSys.speak("Level " + levelIdx + ". Start.");
+}
+
+function loadLevel(lvl) {
+    entities.player = new Player(100, 200);
+    entities.platforms = [];
+    entities.enemies = [];
+    entities.collectibles = [];
+    entities.bullets = [];
+    entities.particles = [];
+    entities.decorations = [];
+    GAME.cameraX = 0;
+
+    let length = 2000 + (lvl * 1500);
+    let gapSize = (lvl === 1) ? 100 : (lvl === 2) ? 140 : 180;
+    let enemyChance = 0.3 + (lvl * 0.15);
+
+    let cx = 0;
+    let cy = GAME.height - 150;
+
+    entities.platforms.push(new Platform(0, cy, 400));
+    cx += 400;
+
+    while(cx < length) {
+        cx += 60 + Math.random() * gapSize;
+        let hChange = (Math.random() - 0.5) * 200;
+        cy += hChange;
+        
+        if(cy > GAME.height - 100) cy = GAME.height - 150;
+        if(cy < 200) cy = 300;
+
+        let w = 150 + Math.random() * 200;
+        entities.platforms.push(new Platform(cx, cy, w));
+
+        if(Math.random() < enemyChance) {
+            entities.enemies.push(new Enemy(cx + w/2 - 20, cy - 40));
+        }
+
+        if(Math.random() < 0.6) {
+            let noteY = cy - 80 - Math.random()*80;
+            entities.collectibles.push(new Note(cx + w/2, noteY));
+        }
+
+        cx += w;
+    }
+
+    entities.goal = { x: cx + 100, y: cy - 200, w: 60, h: 200 };
+    entities.platforms.push(new Platform(cx, cy, 300));
+}
+
+function spawnDust(x, y) {
+    for(let i=0; i<6; i++) {
+        entities.particles.push({
+            x: x, y: y, 
+            vx: (Math.random()-0.5)*6, vy: (Math.random()-0.5)*6,
+            life: 20 + Math.random()*20, color: '#fff', size: Math.random()*4
+        });
+    }
+}
+
+function spawnExplosion(x, y) {
+    for(let i=0; i<10; i++) {
+        entities.particles.push({
+            x: x, y: y, 
+            vx: (Math.random()-0.5)*10, vy: (Math.random()-0.5)*10,
+            life: 30, color: '#ff3333', size: Math.random()*6
+        });
+    }
+}
+
+function hurtPlayer(dmg) {
+    if(entities.player.invuln > 0) return;
+    GAME.lives--;
+    AudioSys.sfxHit();
+    entities.player.invuln = 60;
+    updateHUD();
+    spawnExplosion(entities.player.x, entities.player.y);
+
+    if(GAME.lives <= 0) {
+        gameOver(false);
+    } else {
+        entities.player.vy = -15;
+        if(entities.player.y > GAME.height) {
+            entities.player.y = 100;
+            entities.player.x = Math.max(0, entities.player.x - 300);
+            entities.player.vx = 0;
+            entities.player.vy = 0;
+        }
+    }
+}
+
+function gameOver(win) {
+    GAME.state = 'gameover';
+    KEYS.left = KEYS.right = KEYS.up = KEYS.shoot = false;
+    
+    // Explicitly hide mobile controls on Game Over
+    toggleMobileControls(false);
+
+    const title = document.getElementById('go-title');
+    const score = document.getElementById('go-score');
+    
+    if(win) {
+        title.innerText = "STAGE CLEARED!";
+        title.style.color = "#00ffcc";
+        AudioSys.sfxWin();
+        AudioSys.speak("Stage Cleared!");
+    } else {
+        title.innerText = "GAME OVER";
+        title.style.color = "#ff0033";
+        AudioSys.speak("Game Over");
+    }
+    
+    score.innerText = `FINAL SCORE: ${GAME.score}`;
+    showScreen('gameover-screen');
+}
+
+function showLevelSelect() {
+    showScreen('level-screen');
+}
+
+/* ----------------------
+   MAIN LOOP
+   ---------------------- */
+function loop() {
+    requestAnimationFrame(loop);
+
+    if(GAME.state !== 'playing') return;
+
+    GAME.frame++;
+    const p = entities.player;
+
+    p.update();
+
+    let targetCamX = p.x - GAME.width * 0.3;
+    if(targetCamX < 0) targetCamX = 0;
+    GAME.cameraX += (targetCamX - GAME.cameraX) * 0.1;
+
+    entities.bullets.forEach(b => b.update());
+    entities.enemies.forEach(e => e.update());
+    entities.collectibles.forEach(c => c.update());
+    entities.particles.forEach(pt => {
+        pt.x += pt.vx; pt.y += pt.vy; pt.life--;
+    });
+
+    entities.bullets = entities.bullets.filter(b => !b.dead && b.x < GAME.cameraX + GAME.width + 100);
+    entities.particles = entities.particles.filter(pt => pt.life > 0);
+    entities.enemies = entities.enemies.filter(e => !e.dead);
+    entities.collectibles = entities.collectibles.filter(c => !c.dead);
+
+    entities.bullets.forEach(b => {
+        entities.enemies.forEach(e => {
+            if(!b.dead && !e.dead && b.checkColl(e)) {
+                b.dead = true;
+                e.takeDamage();
+            }
+        });
+    });
+
+    entities.enemies.forEach(e => {
+        if(p.checkColl(e)) {
+            hurtPlayer(1);
+        }
+    });
+
+    entities.collectibles.forEach(c => {
+        if(p.checkColl(c)) {
+            c.dead = true;
+            GAME.score += 10;
+            AudioSys.sfxCollect();
+            updateHUD();
+        }
+    });
+
+    if(p.x > entities.goal.x) {
+        gameOver(true);
+    }
+
+    ctx.fillStyle = '#111';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = '#222';
+    for(let i=0; i<20; i++) {
+        let starX = ((i*100) - (GAME.cameraX * 0.5)) % GAME.width;
+        if(starX < 0) starX += GAME.width;
+        ctx.fillRect(starX, (i*35)%GAME.height, 4, 4);
+    }
+
+    entities.platforms.forEach(pl => pl.draw(GAME.cameraX));
+    entities.enemies.forEach(e => e.draw(GAME.cameraX));
+    entities.collectibles.forEach(c => c.draw(GAME.cameraX));
+    entities.goal.w = 50;
+    ctx.fillStyle = '#00ffcc';
+    ctx.fillRect(entities.goal.x - GAME.cameraX, entities.goal.y, 10, 200);
+    ctx.fillStyle = 'rgba(0, 255, 204, 0.3)';
+    ctx.fillRect(entities.goal.x - GAME.cameraX + 10, entities.goal.y, 50, 200);
+
+    entities.player.draw(GAME.cameraX);
+    entities.bullets.forEach(b => b.draw(GAME.cameraX));
+
+    entities.particles.forEach(pt => {
+        ctx.fillStyle = pt.color;
+        ctx.globalAlpha = pt.life / 20;
+        ctx.fillRect(pt.x - GAME.cameraX, pt.y, pt.size, pt.size);
+        ctx.globalAlpha = 1.0;
+    });
+}
+
+init();
+</script>
+</body>
+</html>
+
+
